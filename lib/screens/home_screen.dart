@@ -9,26 +9,38 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   final TransactionRepository _transactionRepository = TransactionRepository();
   final CategoryRepository _categoryRepository = CategoryRepository();
   late Future<List<TransactionModel>> _transactionsFuture;
   late Future<double> _incomeFuture;
   late Future<double> _expenseFuture;
+  int _refreshKey = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    loadData();
   }
 
-  void _loadData() {
+  void loadData() {
     _transactionsFuture = _transactionRepository.getAllTransactions();
     _incomeFuture = _transactionRepository.getTotalIncome();
     _expenseFuture = _transactionRepository.getTotalExpense();
+  }
+
+  void refreshData() {
+    _refresh();
+  }
+
+  void _refresh() {
+    setState(() {
+      _refreshKey++;
+      loadData();
+    });
   }
 
   Future<String> _getCategoryIcon(String categoryName) async {
@@ -51,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: RefreshIndicator(
         onRefresh: () async {
           setState(() {
-            _loadData();
+            loadData();
           });
         },
         child: SingleChildScrollView(
@@ -77,6 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   builder: (context, snapshot) {
                     final income = snapshot.data ?? 0.0;
                     return FutureBuilder<double>(
+                      key: ValueKey(_refreshKey),
                       future: _expenseFuture,
                       builder: (context, snapshotExpense) {
                         final expense = snapshotExpense.data ?? 0.0;
@@ -164,6 +177,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Transactions List
                 FutureBuilder<List<TransactionModel>>(
+                  key: ValueKey(_refreshKey),
                   future: _transactionsFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {

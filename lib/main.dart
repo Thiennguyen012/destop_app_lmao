@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'database/database_helper.dart';
+import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/add_transaction_screen.dart';
 import 'screens/report_screen.dart';
 import 'screens/transaction_list_screen.dart';
+import 'screens/categories_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +21,11 @@ void main() async {
   await initializeDateFormatting('vi_VN', null);
   // Khởi tạo database trước khi chạy app
   await DatabaseHelper().database;
+
+  // Load saved user
+  final authService = AuthService();
+  await authService.loadSavedUser();
+
   runApp(const MyApp());
 }
 
@@ -50,8 +57,10 @@ class AuthScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if user is logged in (for now, always show login)
-    // In real app, you would check SharedPreferences or secure storage
+    // Check if user is logged in
+    if (AuthService.currentUserId != null) {
+      return const MainScreen();
+    }
     return const LoginScreen();
   }
 }
@@ -65,23 +74,33 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+  final _homeScreenKey = GlobalKey<HomeScreenState>();
 
-  static const List<Widget> _screens = <Widget>[
-    HomeScreen(),
-    TransactionListScreen(),
-    ReportScreen(),
-  ];
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = <Widget>[
+      HomeScreen(key: _homeScreenKey),
+      const TransactionListScreen(),
+      const ReportScreen(),
+      const CategoriesScreen(),
+    ];
+  }
 
   static const List<String> _titles = [
     'Home',
     'Transactions',
     'Reports',
+    'Categories',
   ];
 
   static const List<IconData> _icons = [
     Icons.home,
     Icons.list,
     Icons.assessment,
+    Icons.category,
   ];
 
   void _onItemTapped(int index) {
@@ -114,6 +133,10 @@ class _MainScreenState extends State<MainScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.assessment),
               label: 'Báo Cáo',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.category),
+              label: 'Danh Mục',
             ),
           ],
           currentIndex: _selectedIndex,
@@ -340,6 +363,8 @@ class _MainScreenState extends State<MainScreen> {
       ),
     ).then((result) {
       if (result == true) {
+        // Refresh HomeScreen with UI update
+        _homeScreenKey.currentState?.refreshData();
         setState(() {
           _selectedIndex = 0;
         });
@@ -359,9 +384,12 @@ class _MainScreenState extends State<MainScreen> {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              Navigator.pushReplacementNamed(context, '/login');
+              await AuthService().logout();
+              if (mounted) {
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
             },
             child: Text(
               'Logout',

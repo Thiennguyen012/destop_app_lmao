@@ -14,6 +14,13 @@ class TransactionListScreen extends StatefulWidget {
 class _TransactionListScreenState extends State<TransactionListScreen> {
   final TransactionRepository _transactionRepository = TransactionRepository();
   String _selectedFilter = 'all';
+  int _refreshKey = 0;
+
+  void _refresh() {
+    setState(() {
+      _refreshKey++;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +50,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async {
-                setState(() {});
+                _refresh();
               },
               child: FutureBuilder<List<TransactionModel>>(
+                key: ValueKey(_refreshKey),
                 future: _getTransactions(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -132,7 +140,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     if (confirmed == true) {
       await _transactionRepository.deleteTransaction(id);
       if (mounted) {
-        setState(() {});
+        _refresh();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Xóa giao dịch thành công')),
         );
