@@ -10,6 +10,7 @@ import 'screens/add_transaction_screen.dart';
 import 'screens/report_screen.dart';
 import 'screens/transaction_list_screen.dart';
 import 'screens/categories_screen.dart';
+import 'screens/account_settings_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -162,9 +163,8 @@ class _MainScreenState extends State<MainScreen> {
                 children: [
                   // Logo/Header
                   Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
                       children: [
                         Container(
                           width: 50,
@@ -186,21 +186,28 @@ class _MainScreenState extends State<MainScreen> {
                             size: 28,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'PEM',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Personal Expense',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 11,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'PEM',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Personal Expense',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -227,42 +234,21 @@ class _MainScreenState extends State<MainScreen> {
                   // Add Button at bottom
                   Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _showAddTransactionModal,
-                            icon: const Icon(Icons.add),
-                            label: const Text('Add Transaction'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade700,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: _showAddTransactionModal,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add Transaction'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: _handleLogout,
-                            icon: const Icon(Icons.logout),
-                            label: const Text('Logout'),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.red.shade700,
-                              side: BorderSide(color: Colors.red.shade700),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
@@ -299,9 +285,42 @@ class _MainScreenState extends State<MainScreen> {
                               icon: const Icon(Icons.notifications),
                               onPressed: () {},
                             ),
-                            IconButton(
+                            PopupMenuButton(
                               icon: const Icon(Icons.account_circle),
-                              onPressed: () {},
+                              offset: const Offset(0, 50),
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.settings),
+                                      SizedBox(width: 12),
+                                      Text('Cài Đặt Tài Khoản'),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const AccountSettingsScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                PopupMenuItem(
+                                  child: Row(
+                                    children: const [
+                                      Icon(Icons.logout, color: Colors.red),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'Đăng Xuất',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: _handleLogout,
+                                ),
+                              ],
                             ),
                           ],
                         ),

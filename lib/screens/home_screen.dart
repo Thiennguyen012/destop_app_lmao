@@ -55,11 +55,11 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Quản Lý Tài Chính'),
-        elevation: 0,
-        backgroundColor: Colors.blue.shade700,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Quản Lý Tài Chính'),
+      //   elevation: 0,
+      //   backgroundColor: Colors.blue.shade700,
+      // ),
       body: RefreshIndicator(
         onRefresh: () async {
           setState(() {
@@ -133,27 +133,8 @@ class HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Quick Actions Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildQuickActionButton(
-                      icon: Icons.savings,
-                      label: 'Savings',
-                      color: Colors.blue,
-                    ),
-                    _buildQuickActionButton(
-                      icon: Icons.notifications,
-                      label: 'Remind',
-                      color: Colors.grey,
-                    ),
-                    _buildQuickActionButton(
-                      icon: Icons.trending_up,
-                      label: 'Budget',
-                      color: Colors.grey,
-                    ),
-                  ],
-                ),
+                // Calendar Section
+                _buildCalendarSection(),
                 const SizedBox(height: 24),
 
                 // Latest Entries
@@ -279,35 +260,6 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Build quick action button
-  Widget _buildQuickActionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
   // Build transaction item
   Widget _buildTransactionItem({
     required String title,
@@ -381,6 +333,163 @@ class HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  // Build Calendar Section
+  Widget _buildCalendarSection() {
+    final now = DateTime.now();
+    final firstDay = DateTime(now.year, now.month, 1);
+    final lastDay = DateTime(now.year, now.month + 1, 0);
+
+    return FutureBuilder<List<TransactionModel>>(
+      key: ValueKey('$_refreshKey-calendar'),
+      future: _transactionRepository.getAllTransactions(),
+      builder: (context, snapshot) {
+        final transactions = snapshot.data ?? [];
+
+        // Group transactions by day
+        final transactionsByDay = <int, List<TransactionModel>>{};
+        for (var tx in transactions) {
+          final day = tx.date.day;
+          transactionsByDay.putIfAbsent(day, () => []).add(tx);
+        }
+
+        return Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tháng ${now.month}/${now.year}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Weekday headers
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
+                      .map((day) => Expanded(
+                            child: Center(
+                              child: Text(
+                                day,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 8),
+                // Calendar grid
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 7,
+                    childAspectRatio: 1.2,
+                    crossAxisSpacing: 4,
+                    mainAxisSpacing: 4,
+                  ),
+                  itemCount: 42, // 6 rows * 7 days
+                  itemBuilder: (context, index) {
+                    // Calculate which day this cell represents
+                    final firstWeekday = firstDay.weekday % 7; // 0 = Sunday
+                    final dayNumber = index - firstWeekday + 1;
+
+                    if (dayNumber < 1 || dayNumber > lastDay.day) {
+                      return const SizedBox();
+                    }
+
+                    final dayTransactions = transactionsByDay[dayNumber] ?? [];
+                    final hasTransactions = dayTransactions.isNotEmpty;
+
+                    // Calculate totals
+                    final totalIncome = dayTransactions
+                        .where((tx) => tx.type == 'income')
+                        .fold<double>(0, (sum, tx) => sum + tx.amount);
+                    final totalExpense = dayTransactions
+                        .where((tx) => tx.type == 'expense')
+                        .fold<double>(0, (sum, tx) => sum + tx.amount);
+
+                    return Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: hasTransactions
+                              ? Colors.blue.shade300
+                              : Colors.grey.shade200,
+                          width: hasTransactions ? 1.5 : 0.5,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        color: hasTransactions
+                            ? Colors.blue.shade50
+                            : Colors.grey.shade50,
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Day number
+                          Text(
+                            dayNumber.toString(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          // Transaction amounts
+                          if (hasTransactions)
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (totalIncome > 0)
+                                    Text(
+                                      '+${AppUtils.formatCurrency(totalIncome)}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.green,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  if (totalExpense > 0)
+                                    Text(
+                                      '-${AppUtils.formatCurrency(totalExpense)}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.red,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

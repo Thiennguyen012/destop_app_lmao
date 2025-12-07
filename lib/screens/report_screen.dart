@@ -46,10 +46,10 @@ class _ReportScreenState extends State<ReportScreen> {
         DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Báo Cáo'),
-        backgroundColor: Colors.blue.shade700,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Báo Cáo'),
+      //   backgroundColor: Colors.blue.shade700,
+      // ),
       body: RefreshIndicator(
         onRefresh: () async {
           _refresh();

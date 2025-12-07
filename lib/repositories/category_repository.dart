@@ -49,4 +49,14 @@ class CategoryRepository {
       whereArgs: [id],
     );
   }
+
+  Future<int> updateCategory(Category category) async {
+    final db = await _dbHelper.database;
+    return await db.update(
+      'categories',
+      category.toMap(),
+      where: 'id = ?',
+      whereArgs: [category.id],
+    );
+  }
 }

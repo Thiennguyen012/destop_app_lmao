@@ -3,6 +3,8 @@ import '../repositories/transaction_repository.dart';
 import '../models/transaction.dart';
 import '../utils/app_utils.dart';
 import '../widgets/transaction_card.dart';
+import 'transaction_detail_screen.dart';
+import 'add_transaction_screen.dart';
 
 class TransactionListScreen extends StatefulWidget {
   const TransactionListScreen({Key? key}) : super(key: key);
@@ -25,10 +27,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Danh Sách Giao Dịch'),
-        backgroundColor: Colors.blue.shade700,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Danh Sách Giao Dịch'),
+      //   backgroundColor: Colors.blue.shade700,
+      // ),
       body: Column(
         children: [
           // Filter Buttons
@@ -77,6 +79,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                         icon: tx.type == 'income' ? '💰' : '💸',
                         date: AppUtils.formatDate(tx.date),
                         type: tx.type,
+                        onTap: () async {
+                          final result = await showDialog(
+                            context: context,
+                            builder: (context) =>
+                                TransactionDetailScreen(transaction: tx),
+                          );
+                          if (result == true) {
+                            _refresh();
+                          }
+                        },
                         onDelete: () => _deleteTransaction(tx.id!),
                       );
                     },
@@ -87,7 +99,25 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddTransactionModal,
+        backgroundColor: Colors.blue.shade700,
+        child: const Icon(Icons.add),
+      ),
     );
+  }
+
+  void _showAddTransactionModal() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddTransactionScreen(),
+      ),
+    ).then((result) {
+      if (result == true) {
+        _refresh();
+      }
+    });
   }
 
   Widget _buildFilterChip(String value, String label) {
