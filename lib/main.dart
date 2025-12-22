@@ -11,6 +11,7 @@ import 'screens/report_screen.dart';
 import 'screens/transaction_list_screen.dart';
 import 'screens/categories_screen.dart';
 import 'screens/account_settings_screen.dart';
+import 'screens/wallets_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,6 +87,7 @@ class _MainScreenState extends State<MainScreen> {
       HomeScreen(key: _homeScreenKey),
       const TransactionListScreen(),
       const ReportScreen(),
+      const WalletsScreen(),
       const CategoriesScreen(),
     ];
   }
@@ -94,6 +96,7 @@ class _MainScreenState extends State<MainScreen> {
     'Home',
     'Transactions',
     'Reports',
+    'Wallets',
     'Categories',
   ];
 
@@ -101,6 +104,7 @@ class _MainScreenState extends State<MainScreen> {
     Icons.home,
     Icons.list,
     Icons.assessment,
+    Icons.account_balance_wallet,
     Icons.category,
   ];
 
@@ -125,23 +129,28 @@ class _MainScreenState extends State<MainScreen> {
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
-              label: 'Trang Chủ',
+              label: 'Home',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.list),
-              label: 'Giao Dịch',
+              label: 'Transactions',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.assessment),
-              label: 'Báo Cáo',
+              label: 'Reports',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance_wallet),
+              label: 'Wallets',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.category),
-              label: 'Danh Mục',
+              label: 'Categories',
             ),
           ],
           currentIndex: _selectedIndex,
           selectedItemColor: Colors.blue.shade700,
+          type: BottomNavigationBarType.fixed,
           onTap: _onItemTapped,
         ),
         floatingActionButton: FloatingActionButton(

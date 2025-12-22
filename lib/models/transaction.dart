@@ -6,6 +6,7 @@ class TransactionModel {
   final String type; // 'income' or 'expense'
   final DateTime date;
   final String? description;
+  final int? walletId;
 
   TransactionModel({
     this.id,
@@ -15,6 +16,7 @@ class TransactionModel {
     required this.type,
     required this.date,
     this.description,
+    this.walletId,
   });
 
   Map<String, dynamic> toMap() {
@@ -26,6 +28,7 @@ class TransactionModel {
       'type': type,
       'date': date.toIso8601String(),
       'description': description,
+      'walletId': walletId,
     };
   }
 
@@ -38,6 +41,7 @@ class TransactionModel {
       type: map['type'] as String,
       date: DateTime.parse(map['date'] as String),
       description: map['description'] as String?,
+      walletId: map['walletId'] as int?,
     );
   }
 
@@ -49,6 +53,7 @@ class TransactionModel {
     String? type,
     DateTime? date,
     String? description,
+    int? walletId,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -58,6 +63,7 @@ class TransactionModel {
       type: type ?? this.type,
       date: date ?? this.date,
       description: description ?? this.description,
+      walletId: walletId ?? this.walletId,
     );
   }
 }

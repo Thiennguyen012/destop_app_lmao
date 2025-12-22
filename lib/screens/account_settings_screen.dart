@@ -10,7 +10,6 @@ class AccountSettingsScreen extends StatefulWidget {
 }
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
-  final AuthService _authService = AuthService();
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   late TextEditingController _emailController;

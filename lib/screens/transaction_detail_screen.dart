@@ -40,16 +40,17 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xóa Giao Dịch'),
-        content: const Text('Bạn có chắc chắn muốn xóa giao dịch này không?'),
+        title: const Text('Delete Transaction'),
+        content:
+            const Text('Are you sure you want to delete this transaction?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa', style: TextStyle(color: Colors.red)),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -81,7 +82,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               children: [
                 // Header
                 Text(
-                  'Chi Tiết Giao Dịch',
+                  'Transaction Details',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -109,7 +110,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        isIncome ? 'Thu Nhập' : 'Chi Tiêu',
+                        isIncome ? 'Income' : 'Expense',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,
@@ -133,7 +134,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
                 // Details
                 _buildDetailRow(
-                  label: 'Tiêu Đề',
+                  label: 'Title',
                   value: widget.transaction.title,
                 ),
                 const SizedBox(height: 16),
@@ -143,7 +144,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   builder: (context, snapshot) {
                     final category = snapshot.data;
                     return _buildDetailRow(
-                      label: 'Danh Mục',
+                      label: 'Category',
                       value: widget.transaction.category,
                       icon: category?.icon,
                     );
@@ -152,7 +153,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 const SizedBox(height: 16),
 
                 _buildDetailRow(
-                  label: 'Ngày',
+                  label: 'Date',
                   value: AppUtils.formatDate(widget.transaction.date),
                 ),
                 const SizedBox(height: 16),
@@ -160,7 +161,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 if (widget.transaction.description != null &&
                     widget.transaction.description!.isNotEmpty)
                   _buildDetailRow(
-                    label: 'Ghi Chú',
+                    label: 'Notes',
                     value: widget.transaction.description!,
                   ),
                 if (widget.transaction.description != null &&
@@ -183,7 +184,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                               BorderSide(color: Colors.grey.shade400, width: 1),
                         ),
                         child: Text(
-                          'Đóng',
+                          'Close',
                           style: TextStyle(
                             color: Colors.grey.shade700,
                             fontSize: 16,
@@ -204,7 +205,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                           ),
                         ),
                         child: const Text(
-                          'Xóa',
+                          'Delete',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,

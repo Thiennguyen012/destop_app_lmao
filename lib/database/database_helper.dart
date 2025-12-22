@@ -20,9 +20,19 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'expense_management.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Thêm cột walletId vào bảng transactions
+      await db.execute(
+        'ALTER TABLE transactions ADD COLUMN walletId INTEGER',
+      );
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -67,13 +77,15 @@ class DatabaseHelper {
       CREATE TABLE transactions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         userId INTEGER NOT NULL,
+        walletId INTEGER,
         title TEXT NOT NULL,
         amount REAL NOT NULL,
         category TEXT NOT NULL,
         type TEXT NOT NULL,
         date TEXT NOT NULL,
         description TEXT,
-        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (walletId) REFERENCES wallets(id) ON DELETE SET NULL
       )
     ''');
 

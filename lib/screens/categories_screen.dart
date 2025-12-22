@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../repositories/category_repository.dart';
 import '../models/category.dart';
-import '../services/auth_service.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({Key? key}) : super(key: key);
@@ -90,11 +89,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   ),
                   items: [
                     DropdownMenuItem(
-                        value: 'income',
-                        child: const Text('Income')),
+                        value: 'income', child: const Text('Income')),
                     DropdownMenuItem(
-                        value: 'expense',
-                        child: const Text('Expense')),
+                        value: 'expense', child: const Text('Expense')),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -259,7 +256,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   // Income Categories
                   if (incomeCategories.isNotEmpty) ...[
                     Text(
-                      'Income (Thu Nhập)',
+                      'Income Categories',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -274,7 +271,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   // Expense Categories
                   if (expenseCategories.isNotEmpty) ...[
                     Text(
-                      'Expense (Chi Tiêu)',
+                      'Expense Categories',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

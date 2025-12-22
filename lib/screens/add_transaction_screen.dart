@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../repositories/transaction_repository.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/wallet_repository.dart';
 import '../models/transaction.dart';
 import '../models/category.dart';
+import '../models/wallet.dart';
 import '../utils/app_utils.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -15,6 +17,7 @@ class AddTransactionScreen extends StatefulWidget {
 class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final TransactionRepository _transactionRepository = TransactionRepository();
   final CategoryRepository _categoryRepository = CategoryRepository();
+  final WalletRepository _walletRepository = WalletRepository();
 
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
@@ -22,13 +25,24 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   String _selectedType = 'expense';
   String? _selectedCategory;
+  int? _selectedWalletId;
   DateTime _selectedDate = DateTime.now();
   List<Category> _categories = [];
+  List<Wallet> _wallets = [];
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    _loadWallets();
+  }
+
+  Future<void> _loadWallets() async {
+    final wallets = await _walletRepository.getAllWallets();
+    setState(() {
+      _wallets = wallets;
+      _selectedWalletId = wallets.isNotEmpty ? wallets[0].id : null;
+    });
   }
 
   Future<void> _loadCategories() async {
@@ -57,28 +71,40 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   Future<void> _addTransaction() async {
     if (_titleController.text.isEmpty ||
         _amountController.text.isEmpty ||
-        _selectedCategory == null) {
+        _selectedCategory == null ||
+        _selectedWalletId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng điền đầy đủ thông tin')),
+        const SnackBar(
+            content: Text(
+                'Please fill in all fields (including selecting a wallet')),
       );
       return;
     }
 
-    final transaction = TransactionModel(
-      title: _titleController.text,
-      amount: double.parse(_amountController.text),
-      category: _selectedCategory!,
-      type: _selectedType,
-      date: _selectedDate,
-      description: _descriptionController.text,
-    );
-
-    await _transactionRepository.addTransaction(transaction);
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thêm giao dịch thành công')),
+    try {
+      final transaction = TransactionModel(
+        title: _titleController.text,
+        amount: double.parse(_amountController.text),
+        category: _selectedCategory!,
+        type: _selectedType,
+        date: _selectedDate,
+        description: _descriptionController.text,
+        walletId: _selectedWalletId,
       );
-      Navigator.pop(context, true);
+
+      await _transactionRepository.addTransaction(transaction);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Transaction added successfully')),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     }
   }
 
@@ -151,6 +177,39 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
               ),
+              const SizedBox(height: 16),
+
+              // Wallet Selection
+              const Text('Wallet'),
+              const SizedBox(height: 8),
+              _wallets.isEmpty
+                  ? Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.red),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'Please create a wallet before adding a transaction',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    )
+                  : DropdownButton<int>(
+                      isExpanded: true,
+                      value: _selectedWalletId,
+                      items: _wallets.map((wallet) {
+                        return DropdownMenuItem<int>(
+                          value: wallet.id,
+                          child: Text(
+                              '${wallet.name} - ${AppUtils.formatCurrency(wallet.balance)}'),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedWalletId = value;
+                        });
+                      },
+                    ),
               const SizedBox(height: 16),
 
               // Category

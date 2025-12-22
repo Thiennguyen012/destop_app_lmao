@@ -77,7 +77,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: Padding(
-              padding: const EdgeInsets.only(top: 4.0, bottom: 4.0, right: 20.0),
+              padding:
+                  const EdgeInsets.only(top: 4.0, bottom: 4.0, right: 20.0),
               child: SizedBox(
                 width: 150,
                 child: DropdownButton<String>(
@@ -90,21 +91,21 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                   items: const [
                     DropdownMenuItem(
                       value: 'date_newest',
-                      child: Text('Ngày tạo (Mới nhất)',
-                          style: TextStyle(fontSize: 12)),
+                      child:
+                          Text('Date (Newest)', style: TextStyle(fontSize: 12)),
                     ),
                     DropdownMenuItem(
                       value: 'date_oldest',
-                      child: Text('Ngày tạo (Cũ nhất)',
-                          style: TextStyle(fontSize: 12)),
+                      child:
+                          Text('Date (Oldest)', style: TextStyle(fontSize: 12)),
                     ),
                     DropdownMenuItem(
                       value: 'name_asc',
-                      child: Text('Tên (A-Z)', style: TextStyle(fontSize: 12)),
+                      child: Text('Name (A-Z)', style: TextStyle(fontSize: 12)),
                     ),
                     DropdownMenuItem(
                       value: 'amount_asc',
-                      child: Text('Số tiền (Tăng dần)',
+                      child: Text('Amount (Low to High)',
                           style: TextStyle(fontSize: 12)),
                     ),
                   ],
@@ -135,7 +136,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return const Center(
-                      child: Text('Không có giao dịch nào'),
+                      child: Text('No transactions'),
                     );
                   }
 
@@ -224,16 +225,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xóa Giao Dịch'),
-        content: const Text('Bạn có chắc chắn muốn xóa giao dịch này không?'),
+        title: const Text('Delete Transaction'),
+        content:
+            const Text('Are you sure you want to delete this transaction?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -244,7 +246,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       if (mounted) {
         _refresh();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Xóa giao dịch thành công')),
+          const SnackBar(content: Text('Transaction deleted successfully')),
         );
       }
     }

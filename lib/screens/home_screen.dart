@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../repositories/transaction_repository.dart';
 import '../repositories/category_repository.dart';
+import '../repositories/wallet_repository.dart';
 import '../models/transaction.dart';
 import '../models/category.dart';
+import '../models/wallet.dart';
 import '../utils/app_utils.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,9 +18,11 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends State<HomeScreen> {
   final TransactionRepository _transactionRepository = TransactionRepository();
   final CategoryRepository _categoryRepository = CategoryRepository();
+  final WalletRepository _walletRepository = WalletRepository();
   late Future<List<TransactionModel>> _transactionsFuture;
-  late Future<double> _incomeFuture;
-  late Future<double> _expenseFuture;
+  late Future<double> _incomeMonthlyFuture;
+  late Future<double> _expenseMonthlyFuture;
+  late Future<List<Wallet>> _walletsFuture;
   int _refreshKey = 0;
 
   @override
@@ -28,9 +32,13 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   void loadData() {
+    final now = DateTime.now();
     _transactionsFuture = _transactionRepository.getAllTransactions();
-    _incomeFuture = _transactionRepository.getTotalIncome();
-    _expenseFuture = _transactionRepository.getTotalExpense();
+    _incomeMonthlyFuture =
+        _transactionRepository.getMonthlyIncome(now.month, now.year);
+    _expenseMonthlyFuture =
+        _transactionRepository.getMonthlyExpense(now.month, now.year);
+    _walletsFuture = _walletRepository.getAllWallets();
   }
 
   void refreshData() {
@@ -86,44 +94,35 @@ class HomeScreenState extends State<HomeScreen> {
 
                 // Summary Cards in Horizontal Scroll
                 FutureBuilder<double>(
-                  future: _incomeFuture,
+                  future: _incomeMonthlyFuture,
                   builder: (context, snapshot) {
                     final income = snapshot.data ?? 0.0;
                     return FutureBuilder<double>(
                       key: ValueKey(_refreshKey),
-                      future: _expenseFuture,
+                      future: _expenseMonthlyFuture,
                       builder: (context, snapshotExpense) {
                         final expense = snapshotExpense.data ?? 0.0;
                         return SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              // Total Salary
+                              // Thu Nhập Tháng
                               _buildCompactCard(
-                                title: 'Total Salary',
+                                title: 'Income this Month',
                                 amount: income,
                                 color: Colors.green,
-                                icon: Icons.card_giftcard,
+                                icon: Icons.arrow_downward,
                                 width: 150,
                               ),
                               const SizedBox(width: 12),
-                              // Total Expense
+                              // Chi Tiêu Tháng
                               _buildCompactCard(
-                                title: 'Total Expense',
+                                title: 'Expense this Month',
                                 amount: expense,
                                 color: Colors.blue,
-                                icon: Icons.card_giftcard,
+                                icon: Icons.arrow_upward,
                                 width: 150,
                                 isHighlight: true,
-                              ),
-                              const SizedBox(width: 12),
-                              // Monthly Balance
-                              _buildCompactCard(
-                                title: 'Monthly',
-                                amount: income - expense,
-                                color: Colors.grey,
-                                icon: Icons.card_giftcard,
-                                width: 150,
                               ),
                             ],
                           ),
@@ -133,6 +132,96 @@ class HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 const SizedBox(height: 24),
+
+                // Wallets Section
+                FutureBuilder<List<Wallet>>(
+                  future: _walletsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const SizedBox();
+                    }
+
+                    final wallets = snapshot.data ?? [];
+                    if (wallets.isEmpty) {
+                      return const SizedBox();
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'My Wallets',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: wallets.take(5).map((wallet) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: Card(
+                                  child: Container(
+                                    width: 160,
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Icon(
+                                              Icons.wallet,
+                                              color: Colors.blue.shade700,
+                                              size: 20,
+                                            ),
+                                            Text(
+                                              wallet.currency,
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          wallet.name,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          AppUtils.formatCurrency(
+                                              wallet.balance),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    );
+                  },
+                ),
 
                 // Calendar Section
                 _buildCalendarSection(),
@@ -172,7 +261,7 @@ class HomeScreenState extends State<HomeScreen> {
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Padding(
                         padding: EdgeInsets.all(16.0),
-                        child: Text('Chưa có giao dịch nào'),
+                        child: Text('No transactions yet'),
                       );
                     }
 
@@ -553,7 +642,7 @@ class HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             const Text(
-                              'Thu Nhập',
+                              'Income',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -593,7 +682,7 @@ class HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           children: [
                             const Text(
-                              'Chi Tiêu',
+                              'Expense',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
