@@ -110,185 +110,237 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Add transaction'),
         backgroundColor: Colors.blue.shade700,
+        centerTitle: !isMobile,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Type Selection
-              const Text('Transaction type'),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(
-                          value: 'income',
-                          label: Text('Income'),
-                          icon: Icon(Icons.arrow_downward),
-                        ),
-                        ButtonSegment(
-                          value: 'expense',
-                          label: Text('Expense'),
-                          icon: Icon(Icons.arrow_upward),
-                        ),
-                      ],
-                      selected: {_selectedType},
-                      onSelectionChanged: (Set<String> newSelection) {
-                        setState(() {
-                          _selectedType = newSelection.first;
-                        });
-                        _loadCategories();
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Title
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+      body: isMobile
+          ? SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _buildFormFields(),
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // Amount
-              TextField(
-                controller: _amountController,
-                decoration: InputDecoration(
-                  labelText: 'Amount (VND)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-              ),
-              const SizedBox(height: 16),
-
-              // Wallet Selection
-              const Text('Wallet'),
-              const SizedBox(height: 8),
-              _wallets.isEmpty
-                  ? Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.red),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'Please create a wallet before adding a transaction',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    )
-                  : DropdownButton<int>(
-                      isExpanded: true,
-                      value: _selectedWalletId,
-                      items: _wallets.map((wallet) {
-                        return DropdownMenuItem<int>(
-                          value: wallet.id,
-                          child: Text(
-                              '${wallet.name} - ${AppUtils.formatCurrency(wallet.balance)}'),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedWalletId = value;
-                        });
-                      },
-                    ),
-              const SizedBox(height: 16),
-
-              // Category
-              const Text('Category'),
-              const SizedBox(height: 8),
-              DropdownButton<String>(
-                isExpanded: true,
-                value: _selectedCategory,
-                items: _categories.map((category) {
-                  return DropdownMenuItem<String>(
-                    value: category.name,
-                    child: Text('${category.icon} ${category.name}'),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Date
-              const Text('Date'),
-              const SizedBox(height: 8),
-              InkWell(
-                onTap: () => _selectDate(context),
+            )
+          : SingleChildScrollView(
+              child: Center(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey),
-                    borderRadius: BorderRadius.circular(8),
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _buildFormFields(),
                   ),
-                  child: Text(AppUtils.formatDateShort(_selectedDate)),
                 ),
               ),
-              const SizedBox(height: 16),
+            ),
+    );
+  }
 
-              // Description
-              TextField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Notes (Optional)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+  List<Widget> _buildFormFields() {
+    return [
+      // Type Selection
+      const Text('Transaction type'),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          Expanded(
+            child: SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(
+                  value: 'income',
+                  label: Text('Income'),
+                  icon: Icon(Icons.arrow_downward),
                 ),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 24),
+                ButtonSegment(
+                  value: 'expense',
+                  label: Text('Expense'),
+                  icon: Icon(Icons.arrow_upward),
+                ),
+              ],
+              selected: {_selectedType},
+              onSelectionChanged: (Set<String> newSelection) {
+                setState(() {
+                  _selectedType = newSelection.first;
+                });
+                _loadCategories();
+              },
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 20),
 
-              // Add Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _addTransaction,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Add Transaction',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+      // Title
+      TextField(
+        controller: _titleController,
+        decoration: InputDecoration(
+          labelText: 'Title',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+      const SizedBox(height: 16),
+
+      // Amount
+      TextField(
+        controller: _amountController,
+        decoration: InputDecoration(
+          labelText: 'Amount (VND)',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      ),
+      const SizedBox(height: 16),
+
+      // Wallet Selection
+      const Text('Wallet'),
+      const SizedBox(height: 8),
+      _wallets.isEmpty
+          ? InkWell(
+              onTap: () {
+                // Navigate to MainScreen with Wallets tab (index 3)
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                Navigator.of(context)
+                    .pushReplacementNamed('/home', arguments: 3);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Please create a wallet before adding a transaction',
+                  style: TextStyle(color: Colors.red),
                 ),
               ),
+            )
+          : DropdownButton<int>(
+              isExpanded: true,
+              value: _selectedWalletId,
+              items: _wallets.map((wallet) {
+                return DropdownMenuItem<int>(
+                  value: wallet.id,
+                  child: Text(
+                      '${wallet.name} - ${AppUtils.formatCurrency(wallet.balance)}'),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedWalletId = value;
+                });
+              },
+            ),
+      const SizedBox(height: 16),
+
+      // Category
+      const Text('Category'),
+      const SizedBox(height: 8),
+      _categories.isEmpty
+          ? InkWell(
+              onTap: () {
+                // Navigate to MainScreen with Categories tab (index 4)
+                Navigator.of(context).popUntil((route) => route.isFirst);
+                Navigator.of(context)
+                    .pushReplacementNamed('/home', arguments: 4);
+              },
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.red),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Please create a category before adding a transaction',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            )
+          : DropdownButton<String>(
+              isExpanded: true,
+              value: _selectedCategory,
+              items: _categories.map((category) {
+                return DropdownMenuItem<String>(
+                  value: category.name,
+                  child: Text('${category.icon} ${category.name}'),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedCategory = value;
+                });
+              },
+            ),
+      const SizedBox(height: 16),
+
+      // Date
+      const Text('Date'),
+      const SizedBox(height: 8),
+      InkWell(
+        onTap: () => _selectDate(context),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.calendar_today),
+              const SizedBox(width: 12),
+              Text(AppUtils.formatDateShort(_selectedDate)),
             ],
           ),
         ),
       ),
-    );
+      const SizedBox(height: 16),
+
+      // Description
+      TextField(
+        controller: _descriptionController,
+        decoration: InputDecoration(
+          labelText: 'Notes (Optional)',
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        maxLines: 3,
+      ),
+      const SizedBox(height: 24),
+
+      // Add Button
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: _addTransaction,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue.shade700,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: const Text(
+            'Add Transaction',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    ];
   }
 
   @override

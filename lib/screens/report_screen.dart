@@ -28,6 +28,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Widget _buildLineChart() {
     return FutureBuilder<List<FlSpot>>(
+      key: ValueKey(_selectedMonth), // Rebuild khi _selectedMonth thay đổi
       future: _generateChartData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -43,7 +44,16 @@ class _ReportScreenState extends State<ReportScreen> {
 
         final spots = snapshot.data!;
         final maxY = spots.map((e) => e.y).reduce((a, b) => a > b ? a : b);
-        final minY = 0.0;
+        final minY = spots.map((e) => e.y).reduce((a, b) => a < b ? a : b);
+
+        // Fix: Đảm bảo horizontalInterval không bằng 0
+        final range = maxY - minY;
+        final horizontalInterval =
+            range > 0 ? (range / 5).clamp(1.0, double.infinity) : 1.0;
+
+        // Thêm padding trên dưới để nhìn rõ hơn
+        final paddedMinY = minY - (range * 0.1);
+        final paddedMaxY = maxY + (range * 0.1);
 
         return Card(
           elevation: 2,
@@ -56,7 +66,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   gridData: FlGridData(
                     show: true,
                     drawVerticalLine: true,
-                    horizontalInterval: maxY / 5,
+                    horizontalInterval: horizontalInterval,
                     verticalInterval: 1,
                     getDrawingHorizontalLine: (value) {
                       return FlLine(
@@ -99,7 +109,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
-                        interval: maxY / 5,
+                        interval: horizontalInterval,
                         getTitlesWidget: (value, meta) {
                           return Text(
                             '${(value / 1000000).toStringAsFixed(0)}M',
@@ -124,8 +134,8 @@ class _ReportScreenState extends State<ReportScreen> {
                   ),
                   minX: 0,
                   maxX: 30,
-                  minY: minY,
-                  maxY: maxY * 1.1,
+                  minY: paddedMinY,
+                  maxY: paddedMaxY,
                   lineBarsData: [
                     LineChartBarData(
                       spots: spots,
@@ -190,17 +200,19 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<List<FlSpot>> _generateChartData() async {
     final spots = <FlSpot>[];
-    final now = DateTime.now();
-    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    // Sử dụng _selectedMonth thay vì DateTime.now()
+    final daysInMonth =
+        DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
 
-    // Lấy dữ liệu của các ngày trong tháng
+    // Lấy dữ liệu của các ngày trong tháng được chọn
     for (int day = 1; day <= daysInMonth; day++) {
       final transactions =
           await _transactionRepository.getTransactionsByDateRange(
-        DateTime(now.year, now.month, day),
-        DateTime(now.year, now.month, day),
+        DateTime(_selectedMonth.year, _selectedMonth.month, day),
+        DateTime(_selectedMonth.year, _selectedMonth.month, day),
       );
 
+      // Tính balance riêng lẻ cho ngày đó (không tích lũy)
       double dayBalance = 0;
       for (var tx in transactions) {
         if (tx.type == 'income') {
@@ -210,6 +222,7 @@ class _ReportScreenState extends State<ReportScreen> {
         }
       }
 
+      // Thêm vào chart (daily balance, không cumulative)
       spots.add(FlSpot((day - 1).toDouble(), dayBalance));
     }
 

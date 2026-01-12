@@ -354,84 +354,93 @@ class _WalletsScreenState extends State<WalletsScreen> {
                       itemCount: wallets.length,
                       itemBuilder: (context, index) {
                         final wallet = wallets[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          child: ListTile(
-                            leading: Icon(
-                              Icons.wallet,
-                              color: Colors.blue.shade700,
-                            ),
-                            title: Text(wallet.name),
-                            subtitle: Text(
-                              'Created: ${AppUtils.formatDate(wallet.createdAt)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
+                        return GestureDetector(
+                          onSecondaryTapDown: (details) {
+                            showMenu(
+                              context: context,
+                              position: RelativeRect.fromLTRB(
+                                details.globalPosition.dx,
+                                details.globalPosition.dy,
+                                details.globalPosition.dx,
+                                details.globalPosition.dy,
                               ),
-                            ),
-                            trailing: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  AppUtils.formatCurrency(wallet.balance),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Text(
-                                  wallet.currency,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      WalletDetailScreen(wallet: wallet),
-                                ),
-                              ).then((_) {
-                                loadData();
-                              });
-                            },
-                            onLongPress: () {
-                              showModalBottomSheet(
-                                context: context,
-                                builder: (context) => Container(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
+                              items: [
+                                PopupMenuItem(
+                                  child: const Row(
                                     children: [
-                                      ListTile(
-                                        leading: const Icon(Icons.edit),
-                                        title: const Text('Edit'),
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          _showEditWalletDialog(wallet);
-                                        },
-                                      ),
-                                      ListTile(
-                                        leading: const Icon(Icons.delete,
-                                            color: Colors.red),
-                                        title: const Text('Delete',
-                                            style:
-                                                TextStyle(color: Colors.red)),
-                                        onTap: () {
-                                          Navigator.pop(context);
-                                          _deleteWallet(wallet.id!);
-                                        },
-                                      ),
+                                      Icon(Icons.edit, size: 18),
+                                      SizedBox(width: 12),
+                                      Text('Edit'),
                                     ],
                                   ),
+                                  onTap: () {
+                                    _showEditWalletDialog(wallet);
+                                  },
                                 ),
-                              );
-                            },
+                                PopupMenuItem(
+                                  child: const Row(
+                                    children: [
+                                      Icon(Icons.delete,
+                                          size: 18, color: Colors.red),
+                                      SizedBox(width: 12),
+                                      Text('Delete',
+                                          style: TextStyle(color: Colors.red)),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    _deleteWallet(wallet.id!);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.wallet,
+                                color: Colors.blue.shade700,
+                              ),
+                              title: Text(wallet.name),
+                              subtitle: Text(
+                                'Created: ${AppUtils.formatDate(wallet.createdAt)}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                              trailing: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    AppUtils.formatCurrency(wallet.balance),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    wallet.currency,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        WalletDetailScreen(wallet: wallet),
+                                  ),
+                                ).then((_) {
+                                  loadData();
+                                });
+                              },
+                            ),
                           ),
                         );
                       },

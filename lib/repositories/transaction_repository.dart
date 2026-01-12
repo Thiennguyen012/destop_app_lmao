@@ -68,13 +68,20 @@ class TransactionRepository {
     final userId = AuthService.currentUserId;
     if (userId == null) return [];
 
+    // Normalize dates để chắc chắn include cả ngày cuối
+    final start = startDate.toIso8601String().split('T')[0];
+    final end = DateTime(endDate.year, endDate.month, endDate.day)
+        .add(const Duration(days: 1))
+        .toIso8601String()
+        .split('T')[0];
+
     final List<Map<String, dynamic>> maps = await db.query(
       'transactions',
-      where: 'userId = ? AND date >= ? AND date <= ?',
+      where: 'userId = ? AND date >= ? AND date < ?',
       whereArgs: [
         userId,
-        startDate.toIso8601String(),
-        endDate.toIso8601String(),
+        start,
+        end,
       ],
       orderBy: 'date DESC',
     );

@@ -47,7 +47,10 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
-        '/home': (context) => const MainScreen(),
+        '/home': (context) {
+          final args = ModalRoute.of(context)?.settings.arguments as int?;
+          return MainScreen(initialTabIndex: args);
+        },
       },
     );
   }
@@ -68,14 +71,16 @@ class AuthScreen extends StatelessWidget {
 }
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({Key? key}) : super(key: key);
+  final int? initialTabIndex;
+
+  const MainScreen({Key? key, this.initialTabIndex}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   final _homeScreenKey = GlobalKey<HomeScreenState>();
 
   late final List<Widget> _screens;
@@ -83,6 +88,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialTabIndex ?? 0;
     _screens = <Widget>[
       HomeScreen(key: _homeScreenKey),
       const TransactionListScreen(),
@@ -286,14 +292,14 @@ class _MainScreenState extends State<MainScreen> {
                         ),
                         Row(
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.search),
-                              onPressed: () {},
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.notifications),
-                              onPressed: () {},
-                            ),
+                            // IconButton(
+                            //   icon: const Icon(Icons.search),
+                            //   onPressed: () {},
+                            // ),
+                            // IconButton(
+                            //   icon: const Icon(Icons.notifications),
+                            //   onPressed: () {},
+                            // ),
                             PopupMenuButton(
                               icon: const Icon(Icons.account_circle),
                               offset: const Offset(0, 50),

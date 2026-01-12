@@ -119,7 +119,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        '${widget.transaction.amount.toStringAsFixed(0)} VND',
+                        AppUtils.formatCurrency(widget.transaction.amount),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 36,

@@ -2,8 +2,10 @@ import 'package:intl/intl.dart';
 
 class AppUtils {
   static String formatCurrency(double amount, {String currency = 'VND'}) {
-    final formatter = NumberFormat.currency(locale: 'vi_VN', symbol: currency);
-    return formatter.format(amount);
+    // Format số tiền với dấu . ngăn cách hàng ngàn
+    final formatter = NumberFormat('#,###.##', 'vi_VN');
+    final formatted = formatter.format(amount);
+    return '$formatted $currency';
   }
 
   static String formatDate(DateTime date) {

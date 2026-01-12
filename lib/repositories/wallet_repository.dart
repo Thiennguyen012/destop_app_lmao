@@ -45,20 +45,28 @@ class WalletRepository {
 
   Future<int> updateWallet(Wallet wallet) async {
     final db = await _dbHelper.database;
+    final userId = AuthService.currentUserId;
+    if (userId == null) throw Exception('User not logged in');
+
+    Map<String, dynamic> map = wallet.toMap();
+    map['userId'] = userId;
     return await db.update(
       'wallets',
-      wallet.toMap(),
-      where: 'id = ?',
-      whereArgs: [wallet.id],
+      map,
+      where: 'id = ? AND userId = ?',
+      whereArgs: [wallet.id, userId],
     );
   }
 
   Future<int> deleteWallet(int id) async {
     final db = await _dbHelper.database;
+    final userId = AuthService.currentUserId;
+    if (userId == null) throw Exception('User not logged in');
+
     return await db.delete(
       'wallets',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'id = ? AND userId = ?',
+      whereArgs: [id, userId],
     );
   }
 
